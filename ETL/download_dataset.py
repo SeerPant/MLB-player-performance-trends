@@ -1,6 +1,4 @@
 import os
-import sys
-import json
 from kaggle.api.kaggle_api_extended import KaggleApi
 
 def download_file_with_kaggle_api(dataset_name, download_dir):

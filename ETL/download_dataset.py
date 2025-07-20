@@ -19,7 +19,6 @@ def download_file_with_kaggle_api(dataset_name, download_dir):
 
 if __name__ == "__main__":
     dataset = "joyshil0599/mlb-hitting-and-pitching-stats-through-the-years"
-    #some code is left, refer to codename1
     target_dir = "C:\\Personal\\Computer Science\\Projects\\MLB_data_science\\data\\raw"
     download_file_with_kaggle_api(dataset, target_dir)
 

@@ -3,3 +3,6 @@
 #Ignore all pycache files
 __pycache__/
 *.pyc
+#Ignore all crc files 
+*.crc 
+_SUCCESS

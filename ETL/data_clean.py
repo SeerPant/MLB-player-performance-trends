@@ -68,42 +68,81 @@ def add_id_pitcher():
 hitting_df_final = add_id_hitter()
 pitching_df = add_id_pitcher()
 
+#dropping previously added snake case columns
+#for hitting data
+hitting_snake_case_cols = ['Player_name',"AB","Double","Third_baseman","Home_run","RBI","Walks","Stolen_base","SP","OPS"]
+
+for c in hitting_snake_case_cols:
+      if c in hitting_df_final.columns:
+            hitting_df_final.drop(c)
+
+#for pitching data
+pitching_snake_case_cols = ['Earned_run_Average',"Games_played","Games_started","Complete_Game","Save_Opportunity","Innings_Pitched","Earned_run","Home_run","Hit_Batsmen","Base_on_balls"]
+
+for c in pitching_snake_case_cols: 
+      if c in pitching_df.columns:
+            pitching_df.drop(c)
+
 #Inferring data types of hitting data
 hitting_df_final = hitting_df_final.withColumn("Player_name",F.col("`Player name`").cast(T.StringType()))
+hitting_df_final.drop("Player name")
 hitting_df_final = hitting_df_final.withColumn("Position",F.col("`position`").cast(T.StringType()))
+hitting_df_final.drop("position")
 hitting_df_final = hitting_df_final.withColumn("Games",F.col("`Games`").cast(T.IntegerType()))
 hitting_df_final = hitting_df_final.withColumn("AB",F.col("`At-bat`").cast(T.IntegerType()))
+hitting_df_final = hitting_df_final.drop("At-bat")
 hitting_df_final = hitting_df_final.withColumn("Runs",F.col("`Runs`").cast(T.IntegerType()))
 hitting_df_final = hitting_df_final.withColumn("Hits",F.col("`Hits`").cast(T.IntegerType()))
 hitting_df_final = hitting_df_final.withColumn("Double",F.col("`Double (2B)`").cast(T.IntegerType()))
+hitting_df_final = hitting_df_final.drop("Double (2B)")
 hitting_df_final = hitting_df_final.withColumn("Third_baseman",F.col("`third baseman`").cast(T.IntegerType()))
-hitting_df_final = hitting_df_final.withColumn("Home_run",F.col("`third baseman`").cast(T.IntegerType()))
+hitting_df_final = hitting_df_final.drop("third baseman")
+hitting_df_final = hitting_df_final.withColumn("Home_run",F.col("`home run`").cast(T.IntegerType()))
+hitting_df_final = hitting_df_final.drop("home run")
 hitting_df_final = hitting_df_final.withColumn("RBI",F.col("`run batted in`").cast(T.IntegerType()))
+hitting_df_final = hitting_df_final.drop("run batted in")
 hitting_df_final = hitting_df_final.withColumn("Walks",F.col("`a walk`").cast(T.IntegerType()))
+hitting_df_final = hitting_df_final.drop("a walk")
 hitting_df_final = hitting_df_final.withColumn("Strikeouts",F.col("Strikeouts").cast(T.IntegerType()))
+hitting_df_final = hitting_df_final.drop("Strikeouts")
 hitting_df_final = hitting_df_final.withColumn("Stolen_base",F.col("`stolen base`").cast(T.IntegerType()))
+hitting_df_final = hitting_df_final.drop("stolen base")
 hitting_df_final = hitting_df_final.withColumn("Caught_stealing", F.col("`Caught stealing`").cast(T.IntegerType()))
+hitting_df_final = hitting_df_final.drop("Caught stealing")
 hitting_df_final = hitting_df_final.withColumn("OBP", F.col("`On-base Percentage`").cast(T.DoubleType()))
+hitting_df_final = hitting_df_final.drop("On-base Percentage")
 hitting_df_final = hitting_df_final.withColumn("SP", F.col("`Slugging Percentage`").cast(T.DoubleType()))
+hitting_df_final = hitting_df_final.drop("Slugging Percentage")
 hitting_df_final = hitting_df_final.withColumn("OPS",F.col("`On-base Plus Slugging`").cast(T.DoubleType()))
+hitting_df_final = hitting_df_final.drop("On-base Plus Slugging")
 
 #Inferring data types of pitching data 
 pitching_df = pitching_df.withColumn("Win",F.col("Win").cast(T.IntegerType()))
 pitching_df = pitching_df.withColumn("Loss",F.col("Loss").cast(T.IntegerType()))
 pitching_df = pitching_df.withColumn("Earned_run_Average",F.col("`Earned run Average`").cast(T.DoubleType()))
+pitching_df= pitching_df.drop("Earned run Average")
 pitching_df = pitching_df.withColumn("Games_played",F.col("`Games played`").cast(T.IntegerType()))
+pitching_df = pitching_df.drop("Games played")
 pitching_df = pitching_df.withColumn("Games_started",F.col("`Games started`").cast(T.IntegerType()))
+pitching_df = pitching_df.drop("Games started")
 pitching_df = pitching_df.withColumn("Complete_Game",F.col("`Complete Game`").cast(T.IntegerType()))
+pitching_df = pitching_df.drop("Complete Game")
 pitching_df = pitching_df.withColumn("Shutout",F.col("Shutout").cast(T.IntegerType()))
 pitching_df = pitching_df.withColumn("Save",F.col("Save").cast(T.IntegerType()))
 pitching_df = pitching_df.withColumn("Save_Opportunity",F.col("`Save Opportunity`").cast(T.IntegerType()))
+pitching_df = pitching_df.drop("Save Opportunity")
 pitching_df = pitching_df.withColumn("Innings_Pitched",F.col("`Innings Pitched`").cast(T.DoubleType()))
+pitching_df = pitching_df.drop("Innings Pitched")
 pitching_df = pitching_df.withColumn("Hit",F.col("hit").cast(T.IntegerType()))
 pitching_df = pitching_df.withColumn("Run",F.col("run").cast(T.IntegerType()))
 pitching_df = pitching_df.withColumn("Earned_run",F.col("`earned run`").cast(T.IntegerType()))
+pitching_df = pitching_df.drop("earned run")
 pitching_df = pitching_df.withColumn("Home_run",F.col("`home run`").cast(T.IntegerType()))
+pitching_df = pitching_df.drop("home run")
 pitching_df = pitching_df.withColumn("Hit_Batsmen",F.col("`Hit Batsmen`").cast(T.IntegerType()))
+pitching_df = pitching_df.drop("Hit Batsmen")
 pitching_df = pitching_df.withColumn("Base_on_balls",F.col("`base on balls`").cast(T.IntegerType()))
+pitching_df = pitching_df.drop("base on balls")
 pitching_df = pitching_df.withColumn("Strikeouts",F.col("Strikeouts").cast(T.IntegerType()))
 pitching_df = pitching_df.withColumn("WHIP",F.col("WHIP").cast(T.DoubleType()))
 pitching_df = pitching_df.withColumn("AVG",F.col("AVG").cast(T.DoubleType()))

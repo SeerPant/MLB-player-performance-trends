@@ -6,3 +6,9 @@ __pycache__/
 #Ignore all crc files 
 *.crc 
 _SUCCESS
+venv_superset/ 
+superset_config.py 
+parquet/ 
+.superset/ 
+artifacts/
+data/

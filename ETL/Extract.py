@@ -17,6 +17,9 @@ def download_file_with_kaggle_api(dataset_name, download_dir):
 
 if __name__ == "__main__":
     dataset = "joyshil0599/mlb-hitting-and-pitching-stats-through-the-years"
-    target_dir = "C:\\Personal\\Computer Science\\Projects\\MLB_data_science\\data\\raw"
+    
+    #using the script's folder as base directory
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    target_dir = os.path.join(base_dir, "data", "raw")
     download_file_with_kaggle_api(dataset, target_dir)
 

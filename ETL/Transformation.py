@@ -1,18 +1,42 @@
 import os
-from spark_session_setup import create_spark_session
+import sys 
+import time
+from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
 from pyspark.sql.functions import row_number 
 from pyspark.sql.window import Window
 
+#from pyspark.sql import SparkSession 
+
+#Function to create a spark session with builder pattern
+def create_spark_session():
+    spark = SparkSession.builder.appName("MLBAnalytics").getOrCreate()
+    return spark
+
+
+
 #function that creates a spark session
 spark = create_spark_session()
 
-#loading batter data along with their hitting statistics
-hitting_df = spark.read.csv("data\\raw\\baseball_hitting.csv", header = True, inferSchema = True)
+#creating file paths 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+RAW_DIR = os.path.join(BASE_DIR, "data", "raw")
+CLEANED_DIR = os.path.join(BASE_DIR, "data", "cleaned")
+CLEANED_DIR = os.path.join(BASE_DIR, "data", "cleaned")
+PARQUET_DIR = os.path.join(BASE_DIR, "data", "parquet")
+
+os.makedirs(CLEANED_DIR, exist_ok=True)
+os.makedirs(PARQUET_DIR, exist_ok=True)
+
+"""CLEANING HITTING DATA"""
+#loading raw data
+hitting_df = spark.read.csv(os.path.join(RAW_DIR, "baseball_hitting.csv"), header=True, inferSchema=True)
+pitching_df = spark.read.csv(os.path.join(RAW_DIR, "baseball_pitcher.csv"), header=True, inferSchema=True)
 
 #handling null values and sentinel values of hitters
 hitting_df = hitting_df.dropna()
+
 #cleaning sentinel values
 cols_to_clean = ["Caught stealing"]
 for ch in cols_to_clean:
@@ -26,9 +50,8 @@ hitting_df = hitting_df.toDF(*[col.strip() for col in hitting_df.columns])
 
 
 
+"""CLEANING PITCHER DATA"""
 
-#loading pitchers along with their pitching statistics
-pitching_df = spark.read.csv("data\\raw\\baseball_pitcher.csv", header = True)
 #handling null values of pitchers and cleaning the data
 pitching_df = pitching_df.dropna()
 #print(f"[INFO] The number of null values in pitchers df is: {pitching_df.filter(F.col("Player name").isNull()).count()}")
@@ -66,7 +89,7 @@ def add_id_pitcher():
 
 
 hitting_df_final = add_id_hitter()
-pitching_df = add_id_pitcher()
+pitching_df= add_id_pitcher()
 
 #dropping previously added snake case columns
 #for hitting data
@@ -74,26 +97,25 @@ hitting_snake_case_cols = ['Player_name',"AB","Double","Third_baseman","Home_run
 
 for c in hitting_snake_case_cols:
       if c in hitting_df_final.columns:
-            hitting_df_final.drop(c)
+           hitting_df_final = hitting_df_final.drop(c)
 
 #for pitching data
 pitching_snake_case_cols = ['Earned_run_Average',"Games_played","Games_started","Complete_Game","Save_Opportunity","Innings_Pitched","Earned_run","Home_run","Hit_Batsmen","Base_on_balls"]
 
 for c in pitching_snake_case_cols: 
       if c in pitching_df.columns:
-            pitching_df.drop(c)
+            pitching_df = pitching_df.drop(c)
 
 #Inferring data types of hitting data
 hitting_df_final = hitting_df_final.withColumn("Player_name",F.col("`Player name`").cast(T.StringType()))
-hitting_df_final.drop("Player name")
-hitting_df_final = hitting_df_final.withColumn("Position",F.col("`position`").cast(T.StringType()))
-hitting_df_final.drop("position")
+hitting_df_final = hitting_df_final.drop("Player name")
+hitting_df_final = hitting_df_final.withColumn("Position",F.col("`Position`").cast(T.StringType()))
 hitting_df_final = hitting_df_final.withColumn("Games",F.col("`Games`").cast(T.IntegerType()))
 hitting_df_final = hitting_df_final.withColumn("AB",F.col("`At-bat`").cast(T.IntegerType()))
 hitting_df_final = hitting_df_final.drop("At-bat")
 hitting_df_final = hitting_df_final.withColumn("Runs",F.col("`Runs`").cast(T.IntegerType()))
 hitting_df_final = hitting_df_final.withColumn("Hits",F.col("`Hits`").cast(T.IntegerType()))
-hitting_df_final = hitting_df_final.withColumn("Double",F.col("`Double (2B)`").cast(T.IntegerType()))
+hitting_df_final = hitting_df_final.withColumn("Double_baseman",F.col("`Double (2B)`").cast(T.IntegerType()))
 hitting_df_final = hitting_df_final.drop("Double (2B)")
 hitting_df_final = hitting_df_final.withColumn("Third_baseman",F.col("`third baseman`").cast(T.IntegerType()))
 hitting_df_final = hitting_df_final.drop("third baseman")
@@ -104,7 +126,6 @@ hitting_df_final = hitting_df_final.drop("run batted in")
 hitting_df_final = hitting_df_final.withColumn("Walks",F.col("`a walk`").cast(T.IntegerType()))
 hitting_df_final = hitting_df_final.drop("a walk")
 hitting_df_final = hitting_df_final.withColumn("Strikeouts",F.col("Strikeouts").cast(T.IntegerType()))
-hitting_df_final = hitting_df_final.drop("Strikeouts")
 hitting_df_final = hitting_df_final.withColumn("Stolen_base",F.col("`stolen base`").cast(T.IntegerType()))
 hitting_df_final = hitting_df_final.drop("stolen base")
 hitting_df_final = hitting_df_final.withColumn("Caught_stealing", F.col("`Caught stealing`").cast(T.IntegerType()))
@@ -117,6 +138,8 @@ hitting_df_final = hitting_df_final.withColumn("OPS",F.col("`On-base Plus Sluggi
 hitting_df_final = hitting_df_final.drop("On-base Plus Slugging")
 
 #Inferring data types of pitching data 
+pitching_df = pitching_df.withColumn("Player_name", F.col("`Player name`").cast(T.StringType()))
+pitching_df = pitching_df.drop("Player name")
 pitching_df = pitching_df.withColumn("Win",F.col("Win").cast(T.IntegerType()))
 pitching_df = pitching_df.withColumn("Loss",F.col("Loss").cast(T.IntegerType()))
 pitching_df = pitching_df.withColumn("Earned_run_Average",F.col("`Earned run Average`").cast(T.DoubleType()))
@@ -154,9 +177,51 @@ pitching_df = pitching_df.withColumn("AVG",F.col("AVG").cast(T.DoubleType()))
 #hitting_df_final.show() 
 #pitching_df.show()
 
-#Saving the cleaned data as csv to proper locations
+"""#Saving the cleaned data as csv to proper locations
 os.makedirs("data\\cleaned", exist_ok = True)
 #writing clean datasets to csv 
 hitting_df_final.write.mode("overwrite").option("header", True).csv("data\\cleaned\\hitting_cleaned")
 
-pitching_df.write.mode("overwrite").option("header", True).csv("data\\cleaned\\pitching_cleaned")
+pitching_df.write.mode("overwrite").option("header", True).csv("data\\cleaned\\pitching_cleaned")""" 
+
+#saving cleaned CSVs 
+hitting_df_final.write.mode("overwrite").option("header", True).csv(os.path.join(CLEANED_DIR, "hitting_cleaned"))
+pitching_df.write.mode("overwrite").option("header", True).csv(os.path.join(CLEANED_DIR, "pitching_cleaned"))
+
+
+#Write stage 1, writing to parquet 
+hitting_df_final.write.mode("overwrite").parquet(os.path.join(PARQUET_DIR, "hitting"))
+pitching_df.write.mode("overwrite").parquet(os.path.join(PARQUET_DIR, "pitching"))
+
+#Write stage2, creating a master table 
+
+#Hitting Master Table
+hitting_master = hitting_df_final.select(
+    "id", "Player_name", "Position", "Games", "AB", "Runs", "Hits", "Double_baseman",
+    "Third_baseman", "Home_run", "RBI", "Walks", "Strikeouts", "Stolen_base",
+    "Caught_stealing", "OBP", "SP", "OPS"
+)
+hitting_master.write.mode("overwrite").parquet(os.path.join(PARQUET_DIR, "master_hitting"))
+
+#Pitching Master Table
+pitching_master = pitching_df.select(
+    "id", "Player_name", "Win", "Loss", "Earned_run_Average", "Games_played",
+    "Games_started", "Complete_Game", "Shutout", "Save", "Save_Opportunity",
+    "Innings_Pitched", "Hit", "Run", "Earned_run", "Home_run", "Hit_Batsmen",
+    "Base_on_balls", "Strikeouts", "WHIP", "AVG"
+)
+pitching_master.write.mode("overwrite").parquet(os.path.join(PARQUET_DIR, "master_pitching"))
+
+# --- Query Tables ---
+# Hitting Query Table
+hitting_query = hitting_df_final.select("id", "Player_name", "Position", "AB", "Hits", "Home_run", "RBI", "OBP", "OPS")
+hitting_query.write.mode("overwrite").parquet(os.path.join(PARQUET_DIR, "query_hitting"))
+
+# Pitching Query Table
+pitching_query = pitching_df.select("id", "Player_name", "Games_played", "Win", "Loss", "Earned_run_Average", "Strikeouts", "WHIP", "AVG")
+pitching_query.write.mode("overwrite").parquet(os.path.join(PARQUET_DIR, "query_pitching"))
+
+print("[INFO] Hitting and Pitching master/query tables saved separately as Parquet.")
+
+
+

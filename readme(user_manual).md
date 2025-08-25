@@ -48,7 +48,7 @@ PASSWORD = "your password" (the password that you created)
 HOST = "localhost" (or any name that you give)
 PORT = "5432" (Which is the default port for postgreSQL)
 
-3. The postgresSQL database will contatin: Master table and query tables. Which cna be checked in pgadmin by navigating to the 'localserver' -> 'Schemas' then 'tables'.
+3. The postgresSQL database will contatin: Master table and query tables. Which can be checked in pgadmin by navigating to the 'localserver' -> 'Schemas' then 'tables'.
 
 4. Conduct visualization how ever you want.
    A simple example would be to use power BI,

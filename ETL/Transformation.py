@@ -1,13 +1,10 @@
 import os
-import sys 
-import time
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
 from pyspark.sql.functions import row_number 
 from pyspark.sql.window import Window
 
-#from pyspark.sql import SparkSession 
 
 #Function to create a spark session with builder pattern
 def create_spark_session():
@@ -170,12 +167,6 @@ pitching_df = pitching_df.withColumn("Strikeouts",F.col("Strikeouts").cast(T.Int
 pitching_df = pitching_df.withColumn("WHIP",F.col("WHIP").cast(T.DoubleType()))
 pitching_df = pitching_df.withColumn("AVG",F.col("AVG").cast(T.DoubleType()))
 
-#Confirming validity of data and schemas
-#hitting_df_final.printSchema() 
-#pitching_df.printSchema()
-#pitching_df.show()
-#hitting_df_final.show() 
-#pitching_df.show()
 
 """#Saving the cleaned data as csv to proper locations
 os.makedirs("data\\cleaned", exist_ok = True)
